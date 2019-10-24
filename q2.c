@@ -1,13 +1,13 @@
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <sys/types.h>
-#include <sys/mman.h>
-#include <errno.h>
-
+#include <sys/shm.h>
+#include <sys/ipc.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <stdlib.h>
 
 #define MAXCHAR 100 // max number of characters for a command
 #define MAXARGS 10 // max number of commands

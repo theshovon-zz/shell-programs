@@ -1,3 +1,6 @@
-a.out
-file.txt
-shell.c
+total 40
+-rwxrwxr-x 1 theshovon theshovon 13552 Oct 24 16:12 a.out
+-rw-rw-r-- 1 theshovon theshovon     0 Oct 24 16:19 file.txt
+-rw-rw-r-- 1 theshovon theshovon  3853 Oct 24 12:33 q2.c
+-rwxr-xr-x 1 theshovon theshovon 13552 Oct 24 16:18 shell
+-rw-rw-r-- 1 theshovon theshovon  2632 Oct 24 16:14 shell.c
