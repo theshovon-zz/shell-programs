@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <stdlib.h>
-#define SH_SIZE 		1024 /*Shared memory size*/
+#define SH_SIZE 		4096 /*Shared memory size*/
 void init_shell(int init){
 
 	 if (init == 0)
@@ -18,8 +18,7 @@ void init_shell(int init){
     }
 	printf("--SHELL--215246473>> ");
 }
-
-void exect(FILE *fp, char *shmptr ){
+void exect(FILE *fp, char* shmem,  int shm_id){
 	char cnfrm;
 	printf("....working on request...\n");
 	wait(NULL);
@@ -29,7 +28,15 @@ void exect(FILE *fp, char *shmptr ){
 
 	if (cnfrm == 'y' || cnfrm == 'Y')
 	{		
-  		printf("%s", shmptr);		
+  	/* Reattach the shared memory segment, at a different address.  */ 
+  		shmem = (char*) shmat (shm_id, (void*) 0x5000000, 0); 
+ 		 /* Print out the string from shared memory.  */ 
+ 		 printf ("%s\n", shmem); 
+  		/* Detach the shared memory segment.  */ 
+ 			 shmdt (shmem); 
+
+ 			 /* Deallocate the shared memory segment.  */ 
+  			shmctl (shm_id, IPC_RMID, 0); 	
 	}
 }
 
@@ -56,28 +63,20 @@ int main()
    	fgets(input,100,stdin);
 	size = strlen(input);
 	input[size-1]=' ';
-
-
-	int shm_id;
-	key_t k;
-	char *shm;
-    	char *shmptr;
-   	char *str;
-   	k = ftok("shmfile", 65);
-
-    	shm_id = shmget(k, SH_SIZE, IPC_CREAT | 0666);
-	if(shm_id < 0 ){
-		perror("shmget");
-		exit(1);
-  	  }
-        shm = shmat(shm_id, NULL, 0);
-         if(shm_id == -1){
-             perror("shmat");
-            exit(1);
-         }
+	int shm_id; 
+  	char* shmem; 
+ 	 struct shmid_ds shmbuffer; 
+  	int segment_size; 
+  	const int shared_segment_size = 0x6400; 
+  	shm_id = shmget (IPC_PRIVATE, shared_segment_size, 
+                 IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR); 
+  	shmem = (char*) shmat (shm_id, 0, 0); 
+  	shmctl (shm_id, IPC_STAT, &shmbuffer); 
+  	segment_size  =  shmbuffer.shm_segsz; 
+  
 	strncat(command, input, 20);
 	strncat(command," > ",20);
-	//char * cmd = command;
+	
 		FILE *fp;
 		fp=fopen("file.txt","w");
 		strncat(command,"file.txt",20);
@@ -94,21 +93,22 @@ int main()
 		fp = fopen("file.txt", "r"); // read mode
    		if (fp == NULL)
    		{
-     		 perror("Error while opening the file.\n");
+     		perror("Error while opening the file.\n");
       		exit(EXIT_FAILURE);
    		}
-char ch;
-   		while((ch = fgetc(fp)) != EOF)
-		sprintf(shmptr,"%c", ch);
-		shmptr += 1;
+		char str[999];
+		char tmp[999];
+		int c;
+   		while ((c = getc(fp)) != EOF){
+		 sprintf (shmem,"%c",c);
+		 shmem++;
+		}
+  			shmdt (shmem); 
  			fclose(fp);
 		}
 		else { // parent process 
 
-			exect(fp, shmptr);
-			munmap (shmptr, SH_SIZE);
-
-			
+			exect(fp, shmem, shm_id );	
 		}
 
 
